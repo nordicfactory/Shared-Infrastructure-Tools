@@ -1,0 +1,12 @@
+jobs:
+  - job: reportReleaseStarted
+    displayName: 'reporting: Release Started'
+    steps:
+    - task: PowerShell@2
+      name: 'report_release_started'
+      displayName: 'Report: Release Started'
+      continueOnError: true
+      inputs:
+        filePath: $(System.DefaultWorkingDirectory)/infrastructure/DeploymentSlackReporting.ps1
+        arguments: -action Started -Verbose
+        errorActionPreference: 'continue'
