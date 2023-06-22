@@ -1,0 +1,49 @@
+# File: azure-pipeline.yml
+
+name: Slack
+
+pr:
+- main
+
+pool:
+    vmImage: 'ubuntu-latest'
+
+variables:
+- name: APPLICATION_NAME
+  value: 'My Test Application' 
+- group: 'Slack Integration - Testing'
+
+stages:    
+- stage: stage1
+  condition: ne(variables['Build.Reason'], 'PullRequest')
+  jobs:
+  - template: job-reporting-started.yml  
+  - job: stage1_job2
+    steps:
+    - powershell: |
+          Write-Host "stage1_job2"
+  - job: stage1_job3
+    steps:
+    - powershell: |
+          Write-Host "stage1_job3"
+
+- stage: stage2
+  condition: ne(variables['Build.Reason'], 'PullRequest') 
+  dependsOn: 
+  - stage1
+  variables:
+      - name: job1RES
+        value: $[stageDependencies.staging.updateSlackStatusStarted.result]
+      - name: stage1RES
+        value: $[dependencies.staging.result]
+  jobs:   
+  - job: stage2_job1
+    steps:
+    - powershell: |
+          Write-Host "stage2_job1"
+  - job: stage2_job2
+    steps:
+    - powershell: |
+          Write-Host "stage2_job2"
+
+- template: stage-reporting-completed.yml

@@ -1,0 +1,44 @@
+stages:
+- stage: reporting
+  condition: and(succeededOrFailed(), ne(variables['Build.Reason'], 'PullRequest'))
+  dependsOn: 
+  - stage1
+  - stage2
+  variables:
+    - name: THREAD_TS
+      value: $[stageDependencies.stage1.reportReleaseStarted.outputs['report_release_started.THREAD_TS']]
+    - name: AUTHOR
+      value: $[stageDependencies.stage1.reportReleaseStarted.outputs['report_release_started.AUTHOR']]
+    - name: JIRA_URL
+      value: $[stageDependencies.stage1.reportReleaseStarted.outputs['report_release_started.JIRA_URL']]
+    - name: AVATAR
+      value: $[stageDependencies.stage1.reportReleaseStarted.outputs['report_release_started.AVATAR']]
+    - name: REPORTINGSTARTED_RESULT
+      value: $[stageDependencies.stage1.reportReleaseStarted.result]
+    - name: JOB1RES
+      value: $[stageDependencies.stage1.stage1_job2.result]
+    - name: JOB2RES
+      value: $[stageDependencies.stage1.stage1_job3.result]
+    - name: JOB3RES
+      value: $[stageDependencies.stage2.stage2_job1.result]
+    - name: JOB4RES
+      value: $[stageDependencies.stage2.stage2_job2.result]
+
+  jobs:   
+  - job: report_release_completed
+    displayName: 'reporting: Release Completed'
+    steps:
+    - task: PowerShell@2
+      displayName: 'Report: Release Completed'
+      env:
+        SLACK_TOKEN: $(SLACK_TOKEN)
+        CHANNEL_ID: $(CHANNEL_ID)
+      continueOnError: true
+      inputs:
+        filePath: $(System.DefaultWorkingDirectory)/infrastructure/DeploymentSlackReporting.ps1
+        arguments: >
+          -action 'Finished'
+          -reportingStartedJobResult "$(REPORTINGSTARTED_RESULT)"
+          -dependantJobResults "$(JOB1RES),$(JOB2RES),$(JOB3RES),$(JOB4RES)"
+          -Verbose
+        errorActionPreference: 'continue'
