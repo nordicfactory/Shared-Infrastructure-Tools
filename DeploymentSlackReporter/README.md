@@ -1,6 +1,6 @@
 # Deployment Slack Reporter
 Infrastructure code to automate deployment updates to slack. 
-![Alt text](image-13.png)
+![Alt text](./Assets/image-13.png)
 
 ## Table of Contents
 - [About](#about)
@@ -38,13 +38,13 @@ Make sure the variable group contain both the SLACK_TOKEN and CHANNEL_ID variabl
 ### 1.2 Import
 At the head of the "azurepipelines.yml" file make sure you have a variables section. If it doesn't exist it needs to be created. You can now import the "Slack Integration" variable group and add your [APPLICATION_NAME](#application_name).
 
-![Alt text](image-9.png)
+![Alt text](./Assets/image-9.png)
 
 ## 2. Ps1 script
 Copy the file [DeploymentSlackReporting.ps1](./DeploymentSlackReporting.ps1) file and place it in the infrastructure folder. The file needs to be placed in the same folder as the "azurepipelines.yml" file.
 
 ## 3. Reporting Started Job
-![Alt text](image.png)
+![Alt text](./Assets/image.png)
 
 The job in itself is quite simple. It takes two variables from the pipeline and sets them as environment variables available to the script. It then calls the [DeploymentSlackReporting.ps1](./DeploymentSlackReporting.ps1) script with "Started" and "Verbose" as arguments.
 
@@ -54,18 +54,18 @@ You then need to find the correct place to run the job. The job should be the fi
 
 For example, in Studio-BE we have the following stages:
 
-![Alt text](image-1.png)
+![Alt text](./Assets/image-1.png)
 
 In Studio-Be the first stage that has anything to do with a release to production is "Staging". All of the other stages are related to other environments.
 So in our example the "Reporting Started" should be placed as the first job of the "Staging" stage.
 
 All you need to do now is import the template file like below:
 
-![Alt text](image-8.png)
+![Alt text](./Assets/image-8.png)
 
 
 ## 4. Reporting Completed Stage
-![Alt text](image-2.png)
+![Alt text](./Assets/image-2.png)
 
 ### 4.1 Copy file
 Begin by copying the [stage-reporting-completed.yml](./stage-reporting-completed.yml) file and place it the infrastructure folder.
@@ -75,34 +75,34 @@ To be able to deduct the outcome of the release, the "Reporting Completed Stage"
 
 In our Studio-Be example from before this would be the two stages "Staging" and "Production".
 
-![Alt text](image-6.png)
+![Alt text](./Assets/image-6.png)
 
 ### 4.3 Update stage variables
 Now that our reporting stage depends on the correct stages, we need to populate some stage variables with the outputs. Replace the stage name of following variables with the first release relevant stage name. [THREAD_TS](#thread_ts), [AUTHOR](#author), [JIRA_URL](#jira_url), [AVATR](#avatar) and [REPORTINGSTARTED_RESULT](#reportingstarted_result).
 
 In Studio-BE this would look like:
-![Alt text](image-7.png)
+![Alt text](./Assets/image-7.png)
 
-We then need to get the results from our release relevant stages jobs. In short for each job in each release relevant stage, we need to create a JOBRES variable. To keep it simple the name of the variables should follow the pattern of "JOBXRES". Where "X" starts on 1 and increments with 1.
+We then need to get the results from our release relevant stages jobs. In short for each job in each release relevant stage, we need to create a JOBRES variable. To keep it simple the name of the variables should follow the pattern of [JOBXRES](#JOBXRES). Where "X" starts on 1 and increments with 1.
 
 The values should follow the pattern of $[stageDependencies.NameOfStage.NameOfJob.result].
 
 So from our Studio-Be example from earlier, in the "Staging" stage we have two jobs like so:
 
-![Alt text](image-4.png)
+![Alt text](./Assets/image-4.png)
 
 In our case the the variables would therefore look like:
 
-![Alt text](image-5.png)
+![Alt text](./Assets/image-5.png)
 
 ### 4.4 Update script arguments
 
-Lastly we need to update the dependantJobResults argument (line 41) with your "JOBXRES" variables.
+Lastly we need to update the dependantJobResults argument (line 41) with your [JOBXRES](#JOBXRES) variables.
 
 ### 4.5 Import
 All you need to do now is to import the [stage-reporting-completed.yml](./stage-reporting-completed.yml) file at the end of your pipeline (after the last stage) like so:
 
-![Alt text](image-10.png)
+![Alt text](./Assets/image-10.png)
 
 ## Testing
 When developing it's preferable to be able to test the Reporter. I've successfully used Postman to test the requests and messages in slack. 
@@ -116,7 +116,7 @@ Start by navigating to your pipeline in Azure Devops (Organization => Project =>
 
 If you want to use new channel you also need to invite the Slack application (that does the actual posting of messages) to the channel. Do this by writing /invite in the channel and choose the "Add apps to this channel" option from the suggestions that appear. You then need to search for "Azure Devops integration by Alex" and press add (horrible name I know!).
 
-![Alt text](image-3.png)
+![Alt text](./Assets/image-3.png)
 
 Lastly you need to remove (comment out) the variable group import in your azurepipelines.yml since you've added them manually already.
 
@@ -138,3 +138,5 @@ THe url to the Jira ticket. The ticket name is deducted from name of the PR. Fal
 The url to the Github avatar.
 ### REPORTINGSTARTED_RESULT
 The result of the initial Reporting job.
+### JOBXRES
+The result of dependant job X
