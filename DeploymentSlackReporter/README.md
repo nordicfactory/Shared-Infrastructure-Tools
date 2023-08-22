@@ -52,7 +52,7 @@ Copy the file [DeploymentSlackReporting.ps1](./DeploymentSlackReporting.ps1) fil
 ## 3. Reporting Started Job
 <!-- ![Alt text](./Assets/image.png) -->
 
-The job in itself is quite simple. It takes two variables from the pipeline and sets them as environment variables available to the script. It then calls the [DeploymentSlackReporting.ps1](./DeploymentSlackReporting.ps1) script with "Started" and "Verbose" as arguments.
+<!-- The job in itself is quite simple. It takes two variables from the pipeline and sets them as environment variables available to the script. It then calls the [DeploymentSlackReporting.ps1](./DeploymentSlackReporting.ps1) script with "Started" and "Verbose" as arguments. -->
 
 First copy the file [job-reporting-started.yml](./job-reporting-started.yml) file and place it in the infrastructure folder. The file needs to be placed in the same folder as the "azurepipelines.yml" file.
 
