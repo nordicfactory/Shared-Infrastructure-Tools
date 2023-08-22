@@ -37,14 +37,20 @@ Make sure the variable group contain both the SLACK_TOKEN and CHANNEL_ID variabl
 
 ### 1.2 Import
 At the head of the "azurepipelines.yml" file make sure you have a variables section. If it doesn't exist it needs to be created. You can now import the "Slack Integration" variable group and add your [APPLICATION_NAME](#application_name).
-
-![Alt text](./Assets/image-9.png)
+```yaml
+{
+  "variables":
+  - group: 'Slack Integration'
+  - name: APPLICATION_NAME
+    value: 'Your application name here'
+}
+```
 
 ## 2. Ps1 script
 Copy the file [DeploymentSlackReporting.ps1](./DeploymentSlackReporting.ps1) file and place it in the infrastructure folder. The file needs to be placed in the same folder as the "azurepipelines.yml" file.
 
 ## 3. Reporting Started Job
-![Alt text](./Assets/image.png)
+<!-- ![Alt text](./Assets/image.png) -->
 
 The job in itself is quite simple. It takes two variables from the pipeline and sets them as environment variables available to the script. It then calls the [DeploymentSlackReporting.ps1](./DeploymentSlackReporting.ps1) script with "Started" and "Verbose" as arguments.
 
@@ -56,16 +62,22 @@ For example, in Studio-BE we have the following stages:
 
 ![Alt text](./Assets/image-1.png)
 
-In Studio-Be the first stage that has anything to do with a release to production is "Staging". All of the other stages are related to other environments.
+In Studio-Be the first stage that has anything to do with a release to production is "Staging". All of the earlier stages are related to other environments.
 So in our example the "Reporting Started" should be placed as the first job of the "Staging" stage.
 
 All you need to do now is import the template file like below:
 
-![Alt text](./Assets/image-8.png)
-
+```yaml
+stages: 
+...
+  - stage: staging
+    jobs:
+    - template: job-reporting-started.yml
+...
+```
 
 ## 4. Reporting Completed Stage
-![Alt text](./Assets/image-2.png)
+<!-- ![Alt text](./Assets/image-2.png) -->
 
 ### 4.1 Copy file
 Begin by copying the [stage-reporting-completed.yml](./stage-reporting-completed.yml) file and place it the infrastructure folder.
@@ -78,12 +90,15 @@ In our Studio-Be example from before this would be the two stages "Staging" and 
 ![Alt text](./Assets/image-6.png)
 
 ### 4.3 Update stage variables
-Now that our reporting stage depends on the correct stages, we need to populate some stage variables with the outputs. Replace the stage name of following variables with the first release relevant stage name. [THREAD_TS](#thread_ts), [AUTHOR](#author), [JIRA_URL](#jira_url), [AVATR](#avatar) and [REPORTINGSTARTED_RESULT](#reportingstarted_result).
+Now that our reporting stage depends on the correct stages, we need to populate some stage variables with the outputs. Replace the stage name of following variables with the first release relevant stage name. [THREAD_TS](#thread_ts), [AUTHOR](#author), [JIRA_URL](#jira_url), [AVATR](#avatar) and [REPORTINGSTARTED_RESULT](#reportingstarted_result). The value pattern is as follows:
+```
+$[stageDependencies.{Stage Name}.reportReleaseStarted.outputs]['report_release_started.THREAD_TS']
+```
+So from our Studio-BE example the first stage we depend on is "staging". Our variables would then look like:
 
-In Studio-BE this would look like:
 ![Alt text](./Assets/image-7.png)
 
-We then need to get the results from our release relevant stages jobs. In short for each job in each release relevant stage, we need to create a JOBRES variable. To keep it simple the name of the variables should follow the pattern of [JOBXRES](#JOBXRES). Where "X" starts on 1 and increments with 1.
+We then need to get the results from our release relevant stages jobs. In short: for each job in each release relevant stage, we need to create a JOBRES variable. To keep it simple the name of the variables should follow the pattern of [JOBXRES](#JOBXRES). Where "X" starts on 1 and increments with 1.
 
 The values should follow the pattern of $[stageDependencies.NameOfStage.NameOfJob.result].
 
